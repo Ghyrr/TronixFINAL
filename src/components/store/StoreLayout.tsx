@@ -10,7 +10,7 @@ import { Footer } from '@/components/store/Footer';
 import { Logo } from '@/components/store/Logo';
 
 function SearchForm({ onSubmitDone, autoFocus }: { onSubmitDone?: () => void; autoFocus?: boolean }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { navigate } = useRouter();
   const [query, setQuery] = useState('');
 
@@ -22,19 +22,19 @@ function SearchForm({ onSubmitDone, autoFocus }: { onSubmitDone?: () => void; au
   };
 
   return (
-    <form onSubmit={handleSubmit} role="search" className="relative w-full">
-      <Search className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-400" aria-hidden="true" />
+    <form onSubmit={handleSubmit} role="search" className="relative w-full group">
+      <Search className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-steel-400 group-focus-within:text-brand-500" aria-hidden="true" />
       <input
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder={t('search.placeholder')}
+        placeholder={lang === 'ar' ? 'ابحث عن قطع غيار...' : 'Search for spare parts...'}
         aria-label={t('search.button')}
         autoFocus={autoFocus}
         maxLength={80}
-        className="w-full rounded-full border border-steel-200 bg-steel-50 py-2.5 ps-10 pe-24 text-sm text-steel-900 placeholder:text-steel-400 transition-all focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100"
+        className="w-full rounded-full border-2 border-steel-200 bg-steel-50 py-3 ps-12 pe-28 text-sm font-medium text-steel-900 placeholder:text-steel-400 transition-all focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-500/10"
       />
-      <button type="submit" className="btn-primary absolute end-1 top-1/2 -translate-y-1/2 rounded-full px-4 py-1.5 text-xs">
+      <button type="submit" className="absolute end-1.5 top-1/2 -translate-y-1/2 rounded-full bg-steel-900 px-6 py-2 text-xs font-bold text-white transition-colors hover:bg-brand-600">
         {t('search.button')}
       </button>
     </form>
@@ -215,9 +215,9 @@ function Header() {
         </div>
       </div>
 
-      {/* Desktop search bar */}
-      <div className="hidden border-t border-steel-100 px-4 py-2.5 lg:block">
-        <div className="mx-auto max-w-2xl">
+      {/* Desktop search bar - Much larger and prominent */}
+      <div className="hidden border-t border-steel-100 px-4 py-3 lg:block bg-white">
+        <div className="mx-auto max-w-3xl">
           <SearchForm />
         </div>
       </div>

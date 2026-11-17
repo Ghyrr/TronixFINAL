@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ShieldCheck, Truck, MessageCircle, Wrench, Cpu, Keyboard, Battery, Monitor, Fan, Cable, MemoryStick, HardDrive, Mouse, Speaker, Zap, CircuitBoard } from 'lucide-react';
+import { ShieldCheck, Truck, MessageCircle, Cpu, Keyboard, Battery, Monitor, Fan, Cable, MemoryStick, HardDrive, Mouse, Speaker, Zap, CircuitBoard, ArrowRight, Wrench } from 'lucide-react';
 import { fetchActiveBanners, fetchProducts } from '@/api/catalog';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { useSettings } from '@/context/SettingsContext';
@@ -34,13 +34,23 @@ const CATEGORY_ICONS: Record<string, typeof Cpu> = {
   'laptop-accessories': HardDrive,
 };
 
+// RELIABLE BRAND LOGOS (Using SimpleIcons CDN with a grey color)
+const BRAND_LOGOS: Record<string, string> = {
+  'dell': 'https://cdn.simpleicons.org/dell/94a3b8',
+  'hp': 'https://cdn.simpleicons.org/hp/94a3b8',
+  'lenovo': 'https://cdn.simpleicons.org/lenovo/94a3b8',
+  'asus': 'https://cdn.simpleicons.org/asus/94a3b8',
+  'acer': 'https://cdn.simpleicons.org/acer/94a3b8',
+  'msi': 'https://cdn.simpleicons.org/msi/94a3b8',
+  'toshiba': 'https://cdn.simpleicons.org/toshiba/94a3b8',
+};
+
 export function HomePage() {
   const { t, lang } = useLanguage();
   const { categories, brands, homepage, general } = useSettings();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [featured, setFeatured] = useState<Section>(EMPTY_SECTION);
   const [bestSellers, setBestSellers] = useState<Section>(EMPTY_SECTION);
-  const [latest, setLatest] = useState<Section>(EMPTY_SECTION);
 
   useDocumentMeta({
     title: `${general.store_name} | ${lang === 'ar' ? 'قطع غيار اللابتوب' : 'Laptop Spare Parts'}`,
@@ -56,7 +66,6 @@ export function HomePage() {
     };
     run({ featuredOnly: true, limit: 10 }, setFeatured);
     run({ bestSellersOnly: true, limit: 10 }, setBestSellers);
-    run({ limit: 10, sort: 'newest' }, setLatest);
   }, []);
 
   useEffect(() => {
@@ -70,49 +79,56 @@ export function HomePage() {
     { icon: MessageCircle, title: t('home.trust.support'), desc: t('home.trust.support.desc') },
   ];
 
+  const promo1 = banners.length >= 2 ? banners[1] : null;
+  const promo2 = banners.length >= 3 ? banners[2] : null;
+
   return (
-    <div className="flex flex-col gap-12 pb-16 pt-4 sm:pt-6">
-      {/* Hero Slider */}
+    <div className="flex flex-col gap-16 pb-16 pt-4 sm:pt-6">
+      
       {homepage.show_hero && (
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <HeroSlider banners={banners} />
         </div>
       )}
 
-      {/* Feature Bar */}
       <div className="border-y border-steel-200 bg-steel-50">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-around gap-4 px-4 py-5 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-around gap-6 px-4 py-6 sm:px-6 lg:px-8">
           {features.map((feature) => (
-            <div key={feature.title} className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600">
-                <feature.icon className="h-5 w-5" aria-hidden="true" />
+            <div key={feature.title} className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-brand-600 shadow-sm border border-steel-100">
+                <feature.icon className="h-6 w-6" aria-hidden="true" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-steel-900">{feature.title}</h3>
-                <p className="text-xs text-steel-500">{feature.desc}</p>
+                <h3 className="text-base font-bold text-steel-900">{feature.title}</h3>
+                <p className="text-sm text-steel-500">{feature.desc}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Categories Showcase */}
       {homepage.show_categories && categories.length > 0 && (
         <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading title={t('home.categories.title')} subtitle={t('home.categories.subtitle')} />
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          <SectionHeading title={lang === 'ar' ? 'تسوق حسب القسم' : 'Shop by Category'} subtitle={lang === 'ar' ? 'كل ما تحتاجه لصيانة اللابتوب' : 'Everything you need for your laptop'} />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
             {categories.map((category) => {
               const Icon = CATEGORY_ICONS[category.slug] ?? Cpu;
+              const hasImage = !!((category as unknown) as { image_url?: string }).image_url; 
+              
               return (
                 <Link
                   key={category.id}
                   to={`/category/${category.slug}`}
-                  className="group flex flex-col items-center gap-3 rounded-2xl border border-steel-200 bg-white p-4 transition-all hover:-translate-y-1 hover:border-brand-300 hover:shadow-card sm:p-5"
+                  className="group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border border-steel-200 bg-white p-6 transition-all hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-steel-100 text-steel-600 transition-colors group-hover:bg-brand-50 group-hover:text-brand-600 sm:h-14 sm:w-14">
-                    <Icon className="h-6 w-6" aria-hidden="true" />
-                  </div>
-                  <span className="text-center text-xs font-semibold leading-tight text-steel-700 transition-colors group-hover:text-brand-600 sm:text-sm">
+                  {hasImage ? (
+                    <img src={((category as unknown) as { image_url?: string }).image_url} alt={localized(category, 'name', lang)} className="h-16 w-16 rounded-full object-cover" />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-steel-50 text-steel-600 transition-colors group-hover:bg-brand-50 group-hover:text-brand-600">
+                      <Icon className="h-8 w-8" aria-hidden="true" />
+                    </div>
+                  )}
+                  <span className="text-center text-sm font-bold leading-tight text-steel-800 transition-colors group-hover:text-brand-600">
                     {localized(category, 'name', lang)}
                   </span>
                 </Link>
@@ -122,7 +138,40 @@ export function HomePage() {
         </section>
       )}
 
-      {/* Featured Products */}
+      <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-6 md:grid-cols-2">
+          <Link to={promo1?.link_url || "/shop"} className="group relative flex h-64 items-center overflow-hidden rounded-3xl bg-brand-900 px-8 shadow-xl">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1603302576837-37561b2e2302?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-40 transition-transform duration-700 group-hover:scale-110" />
+            <div className="relative z-10 flex flex-col items-start gap-4">
+              <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-black uppercase tracking-wider text-white">
+                {promo1 ? (lang === 'ar' ? promo1.title_ar : promo1.title_en) : 'Black Friday Deals'}
+              </span>
+              <h3 className="text-3xl font-black text-white leading-tight">
+                {promo1 ? (lang === 'ar' ? promo1.subtitle_ar : promo1.subtitle_en) : 'Up to 40% Off Laptop Batteries'}
+              </h3>
+              <span className="flex items-center gap-2 text-sm font-bold text-white transition-transform group-hover:translate-x-2">
+                {lang === 'ar' ? 'تسوق الآن' : 'Shop Now'} <ArrowRight className="h-4 w-4" />
+              </span>
+            </div>
+          </Link>
+          
+          <Link to={promo2?.link_url || "/shop"} className="group relative flex h-64 items-center overflow-hidden rounded-3xl bg-steel-900 px-8 shadow-xl">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1588702547919-26089e690ecc?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-40 transition-transform duration-700 group-hover:scale-110" />
+            <div className="relative z-10 flex flex-col items-start gap-4">
+              <span className="rounded-full bg-brand-500 px-3 py-1 text-xs font-black uppercase tracking-wider text-white">
+                {promo2 ? (lang === 'ar' ? promo2.title_ar : promo2.title_en) : 'New Arrivals'}
+              </span>
+              <h3 className="text-3xl font-black text-white leading-tight">
+                {promo2 ? (lang === 'ar' ? promo2.subtitle_ar : promo2.subtitle_en) : 'Premium Keyboards & Accessories'}
+              </h3>
+              <span className="flex items-center gap-2 text-sm font-bold text-white transition-transform group-hover:translate-x-2">
+                {lang === 'ar' ? 'اكتشف المزيد' : 'Explore Collection'} <ArrowRight className="h-4 w-4" />
+              </span>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {homepage.show_featured && (
         <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeading title={t('home.featured.title')} action={<ViewAllLink to="/shop" />} />
@@ -130,53 +179,65 @@ export function HomePage() {
         </section>
       )}
 
-      {/* Best Sellers */}
+      {brands.length > 0 && (
+        <section className="border-y border-steel-200 bg-steel-50 py-12">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="mb-10 text-center text-sm font-bold uppercase tracking-[0.2em] text-steel-400">
+              {lang === 'ar' ? 'نوفر جميع قطع غيار الماركات العالمية' : 'We supply all parts for top brands'}
+            </h2>
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+              {brands.filter((b) => b.is_active && b.name.toLowerCase() !== 'apple').map((brand) => {
+                
+                const uploadedLogo = ((brand as unknown) as { image_url?: string }).image_url;
+                const fallbackLogo = BRAND_LOGOS[brand.name.toLowerCase()];
+                const logoSrc = uploadedLogo || fallbackLogo;
+
+                return (
+                  <Link
+                    key={brand.id}
+                    to={`/brand/${brand.slug}`}
+                    className="grayscale transition-all duration-300 hover:grayscale-0 hover:scale-110 opacity-60 hover:opacity-100 flex items-center justify-center min-w-[80px]"
+                  >
+                    {logoSrc ? (
+                      <img 
+                        src={logoSrc} 
+                        alt={brand.name} 
+                        className="h-8 w-auto object-contain md:h-10" 
+                        // If the image fails to load, hide it and show text instead
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const span = document.createElement('span');
+                          span.className = 'text-3xl font-black text-steel-800 tracking-tighter';
+                          span.innerText = brand.name;
+                          e.currentTarget.parentElement?.appendChild(span);
+                        }}
+                      />
+                    ) : (
+                      <span className="text-3xl font-black text-steel-800 tracking-tighter">{brand.name}</span>
+                    )}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
       {homepage.show_best_sellers && (
         <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeading title={t('home.bestSellers.title')} action={<ViewAllLink to="/shop" />} />
           <ProductGrid products={bestSellers.products} loading={bestSellers.loading} error={bestSellers.error} onRetry={load} emptyMessage={t('common.empty')} />
         </section>
       )}
-
-      {/* Brands Strip */}
-      {brands.length > 0 && (
-        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-steel-200 bg-white p-6">
-            <h2 className="mb-5 text-center text-sm font-bold uppercase tracking-wide text-steel-500">
-              {lang === 'ar' ? 'الماركات المتاحة' : 'Available Brands'}
-            </h2>
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-              {brands.filter((b) => b.is_active).map((brand) => (
-                <Link
-                  key={brand.id}
-                  to={`/brand/${brand.slug}`}
-                  className="text-lg font-bold text-steel-400 transition-colors hover:text-steel-700 sm:text-xl"
-                >
-                  {brand.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Latest Products */}
-      {homepage.show_latest && (
-        <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading title={t('home.latest.title')} action={<ViewAllLink to="/shop" />} />
-          <ProductGrid products={latest.products} loading={latest.loading} error={latest.error} onRetry={load} emptyMessage={t('common.empty')} />
-        </section>
-      )}
-
-      {/* CTA Banner */}
+      
       <section className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="metallic-gradient overflow-hidden rounded-2xl p-8 sm:p-12">
-          <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-between sm:text-start">
+        <div className="metallic-gradient overflow-hidden rounded-3xl p-10 sm:p-14 shadow-2xl">
+          <div className="flex flex-col items-center gap-8 text-center sm:flex-row sm:justify-between sm:text-start">
             <div>
-              <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
+              <h2 className="text-3xl font-black text-white sm:text-4xl">
                 {lang === 'ar' ? 'محتاج قطعة غيار معينة؟' : 'Looking for a specific part?'}
               </h2>
-              <p className="mt-2 text-steel-300">
+              <p className="mt-3 text-lg text-steel-300 font-medium">
                 {lang === 'ar' ? 'تواصل معنا عبر واتساب وسنساعدك في العثور على ما تحتاجه' : 'Contact us on WhatsApp and we will help you find what you need'}
               </p>
             </div>
@@ -184,9 +245,9 @@ export function HomePage() {
               href={`https://wa.me/${general.whatsapp_number.replace(/\D/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-brand-700 hover:shadow-glow active:scale-[0.98]"
+              className="inline-flex items-center gap-3 rounded-2xl bg-brand-600 px-8 py-4 text-base font-bold text-white shadow-xl transition-all hover:bg-brand-500 hover:scale-105 active:scale-95"
             >
-              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              <MessageCircle className="h-6 w-6" aria-hidden="true" />
               {lang === 'ar' ? 'تواصل عبر واتساب' : 'Contact on WhatsApp'}
             </a>
           </div>
